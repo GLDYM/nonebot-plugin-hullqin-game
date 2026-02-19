@@ -14,7 +14,7 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/GLDYM/nonebot-plugin-hullqin-game",
     config=Config,
     supported_adapters={"~onebot.v11"},
-    extra={"author": "Polaris_Light", "version": "1.0.0", "priority": 5},
+    extra={"author": "Polaris_Light", "version": "1.0.1", "priority": 5},
 )
 
 from nonebot import require
@@ -41,7 +41,6 @@ help_cmd = on_command(
     priority=5,
     block=True,
 )
-
 
 @help_cmd.handle()
 async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):

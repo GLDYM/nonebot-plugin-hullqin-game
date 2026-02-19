@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "nonebot-plugin-hullqin-game"
-version = "1.0.0"
+version = "1.0.1"
 description = "Hullqin Game 桌游发车"
 authors = [
     {name = "Polaris_Light", email = "995905922@qq.com" }

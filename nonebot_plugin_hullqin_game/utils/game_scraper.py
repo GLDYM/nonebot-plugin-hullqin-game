@@ -59,7 +59,7 @@ class GameScraper:
             rule_link = await self.get_game_help(game["game_id"])
             game["rule_link"] = rule_link
 
-        return games.get("games", [])
+        return games
     
     async def get_game_help(self, game_id: str) -> str:
         """获取游戏规则链接"""
