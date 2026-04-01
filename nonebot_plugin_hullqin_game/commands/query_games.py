@@ -57,7 +57,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
         rule = game.get("rule_link", "无")
         url = f"https://game.hullqin.cn/{game_id}/{room_id}"
         
-        """
+
         current = await game_scraper.get_room_data(game_id, room_id)
         if current:
             current_players = current["current"]
@@ -71,10 +71,10 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             message_lines.append(
                 f"{i}. {game_name}：{url}\n> 规则链接: {rule}"
             )
-        """
-        message_lines.append(
-            f"{i}. {game_name}：{url}\n> 规则链接: {rule}"
-        )
+
+        # message_lines.append(
+        #     f"{i}. {game_name}：{url}\n> 规则链接: {rule}"
+        # )
         i += 1
 
     if len(message_lines) <= 5:
