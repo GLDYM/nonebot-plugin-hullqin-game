@@ -7,11 +7,8 @@ from typing import Dict, List, Union, Optional
 import aiohttp
 from urllib.parse import urljoin
 
-from nonebot import logger, get_driver
-from playwright.async_api import Browser, Error, Playwright, async_playwright
-
+from nonebot import logger
 from ..config import config
-from .install_browser import install_browser
 from .room_ws_fetcher import fetch_room_data
 
 ua =  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
@@ -22,27 +19,9 @@ ROOM_ID_MIXED = "qwert0yu1pa2sd3fg4hj5kz6xc7vb8nm9"
 
 class GameScraper:
     def __init__(self) -> None:
-        self.playwright: Playwright | None = None
-        self.browser: Browser | None = None
         self._game_name_map: Dict[str, str] | None = None
         self._game_rule_map: Dict[str, str] | None = None
         
-
-    async def init_browser(self, **kwargs) -> None:
-        """初始化浏览器"""
-        self.playwright = await async_playwright().start()
-        try:
-            self.browser = await self.launch_browser(**kwargs)
-        except Error:
-            await install_browser()
-            self.browser = await self.launch_browser(**kwargs)
-        return self.browser
-    
-    async def launch_browser(self, **kwargs) -> Browser:
-        assert self.playwright is not None, "Playwright 没有安装"
-        logger.info("使用 chromium 启动")
-        return await self.playwright.chromium.launch(headless=config.playwright_headless, **kwargs)
-
 
     async def _http_get_text(self, url: str, timeout: int = 15) -> str:
         request_timeout = aiohttp.ClientTimeout(total=timeout)
@@ -135,50 +114,8 @@ class GameScraper:
         ws_data = await fetch_room_data(game_id=game_id, room_id=room_id, cookie_value=gid)
         if ws_data is not None:
             return ws_data
-
-        # ws 获取失败时回退页面解析，保持行为兼容。
-        assert self.browser is not None, "浏览器未初始化"
-        url = f"https://game.hullqin.cn/{game_id}/{room_id}"
-
-        page = await self.browser.new_page()
-        await page.goto(url)
-        await page.wait_for_load_state("networkidle")
-
-        content = await page.content()
-        if "观战中" not in content:
-            await page.close()
+        else:
+            logger.warning(f"未能获取到 {game_id} 房间 {room_id} 的数据")
             return None
 
-        players = []
-        seat_index = 0
-
-        while True:
-            seat = await page.query_selector(f"#userseat{seat_index}")
-            if not seat:
-                break
-            player_div = await seat.query_selector("div.text-2xl.overflow-hidden")
-            if player_div:
-                name = await player_div.inner_text()
-                players.append(name.strip())
-            else:
-                player_head = await seat.query_selector("div.head-image")
-                if player_head:
-                    players.append("神秘人")
-            seat_index += 1
-
-        await page.close()
-
-        current = len(players)
-        total = seat_index
-        return {
-            "current": current,
-            "total": total,
-            "players": players,
-        }
-
 game_scraper = GameScraper()
-driver = get_driver()
-
-@driver.on_startup
-async def init_card() -> None:
-    await game_scraper.init_browser()
